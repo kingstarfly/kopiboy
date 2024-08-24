@@ -46,6 +46,12 @@ export function OrderForm() {
     setSearch(e.target.value);
   };
 
+  const handleReset = () => {
+    if (window.confirm("Are you sure you want to clear all orders?")) {
+      setOrders([]);
+    }
+  };
+
   const filteredDrinks = drinks.filter((drink) =>
     drink.toLowerCase().includes(search.toLowerCase()),
   );
@@ -56,7 +62,10 @@ export function OrderForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+    <form
+      onSubmit={handleSubmit}
+      className="flex w-full flex-col gap-2 px-2 sm:w-96"
+    >
       <input
         type="text"
         value={search}
@@ -73,7 +82,9 @@ export function OrderForm() {
           />
         ))}
       </div>
-      <span>{filteredDrinks.length} result(s)</span>
+      <span className="text-sm text-gray-500">
+        {filteredDrinks.length} result(s)
+      </span>
       <div className="mt-4">
         {orders.map((order) => (
           <OrderItem
@@ -85,10 +96,11 @@ export function OrderForm() {
         ))}
       </div>
       <button
-        type="submit"
+        type="button"
+        onClick={handleReset}
         className="mt-2 rounded bg-blue-500 px-4 py-2 text-white"
       >
-        Submit Orders
+        Clear orders
       </button>
     </form>
   );
@@ -119,22 +131,22 @@ function OrderItem({
   onRemove: () => void;
 }) {
   return (
-    <div className="flex items-center justify-between border-b p-2">
+    <div className="flex items-center justify-between gap-x-4 border-b p-4">
       <span>
         {order.drink} (x{order.quantity})
       </span>
-      <div className="flex gap-2">
+      <div className="flex gap-x-4">
         <button
           type="button"
           onClick={onAdd}
-          className="rounded bg-green-500 px-2 py-1 text-white"
+          className="rounded bg-green-500 px-3 py-1 text-white"
         >
           +
         </button>
         <button
           type="button"
           onClick={onRemove}
-          className="rounded bg-red-500 px-2 py-1 text-white"
+          className="rounded bg-red-500 px-3 py-1 text-white"
         >
           -
         </button>
