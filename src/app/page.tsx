@@ -10,8 +10,8 @@ export default async function Home() {
           <h1 className="text-5xl font-extrabold tracking-tight sm:text-[4rem]">
             Kopi Boy ☕ 🇸🇬
           </h1>
-          <OrderForm />
           <OrdersList />
+          <OrderForm />
         </div>
       </main>
     </HydrateClient>
