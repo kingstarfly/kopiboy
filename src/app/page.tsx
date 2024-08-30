@@ -1,6 +1,5 @@
 import { HydrateClient } from "@/trpc/server";
 import { OrderForm } from "./_lib/components/OrderForm";
-import { OrdersList } from "./_lib/components/OrderList";
 
 export default async function Home() {
   return (
@@ -10,7 +9,6 @@ export default async function Home() {
           <h1 className="text-5xl font-extrabold tracking-tight sm:text-[4rem]">
             Kopi Boy ☕ 🇸🇬
           </h1>
-          <OrdersList />
           <OrderForm />
         </div>
       </main>

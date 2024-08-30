@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useLocalStorage } from "usehooks-ts";
 
 // Define the modifier categories and their options
-const bases = ["Kopi", "Teh"];
+const bases = ["Kopi", "Teh", "Milo"];
 const modifierCategories = {
   milk: ["O", "C", ""],
   strength: ["Gau", "Po", "Di Lo", ""],
@@ -57,18 +57,15 @@ export function OrderForm() {
     setSelectedModifiers({});
   };
 
-  const handleRemoveDrink = (drink: string) => {
+  const handleUpdateQuantity = (drink: string, change: number) => {
     setOrders((prevOrders) => {
-      const existingOrder = prevOrders.find((order) => order.drink === drink);
-      if (existingOrder && existingOrder.quantity > 1) {
-        return prevOrders.map((order) =>
+      return prevOrders
+        .map((order) =>
           order.drink === drink
-            ? { ...order, quantity: order.quantity - 1 }
+            ? { ...order, quantity: Math.max(0, order.quantity + change) }
             : order,
-        );
-      } else {
-        return prevOrders.filter((order) => order.drink !== drink);
-      }
+        )
+        .filter((order) => order.quantity > 0);
     });
   };
 
@@ -82,31 +79,17 @@ export function OrderForm() {
     <div className="flex w-full flex-col gap-6 rounded-lg bg-white px-4 py-6 shadow-md sm:w-[480px]">
       <h2 className="mb-4 text-center text-2xl font-bold">Order Your Drink</h2>
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Current Orders:</h3>
-        {orders.length > 0 ? (
-          <div className="space-y-2">
-            {orders.map((order) => (
-              <OrderItem
-                key={order.drink}
-                order={order}
-                onAdd={() => handleAddDrink(order.drink)}
-                onRemove={() => handleRemoveDrink(order.drink)}
-              />
-            ))}
-          </div>
-        ) : (
-          <p className="italic text-gray-500">No orders yet</p>
-        )}
-        {orders.length > 0 && (
-          <button
-            type="button"
-            onClick={handleReset}
-            className="mt-4 w-full rounded bg-red-500 px-4 py-2 text-white transition-colors hover:bg-red-600"
-          >
-            Clear All Orders
-          </button>
-        )}
+      <OrderSummary
+        orders={orders}
+        onUpdateQuantity={handleUpdateQuantity}
+        onReset={handleReset}
+      />
+
+      <div className="rounded-lg bg-gray-100 p-4">
+        <h3 className="mb-2 text-lg font-semibold">Current selection:</h3>
+        <p className="text-xl font-medium">
+          {getCurrentDrink() || "No drink selected"}
+        </p>
       </div>
 
       <div className="space-y-4">
@@ -135,13 +118,13 @@ export function OrderForm() {
           {Object.entries(modifierCategories).map(([category, options]) => (
             <div key={category} className="space-y-2">
               <h4 className="text-md font-medium capitalize">{category}:</h4>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-wrap gap-2">
                 {options.map((modifier) => (
                   <button
                     key={modifier}
                     type="button"
                     onClick={() => handleModifierSelection(category, modifier)}
-                    className={`text-md rounded px-4 py-3 transition-colors ${
+                    className={`text-md flex-1 rounded px-4 py-3 transition-colors ${
                       selectedModifiers[category] === modifier
                         ? "bg-green-500 text-white"
                         : "bg-gray-200 text-gray-800 hover:bg-gray-300"
@@ -153,13 +136,6 @@ export function OrderForm() {
               </div>
             </div>
           ))}
-
-          <div className="mt-6 rounded-lg bg-gray-100 p-4">
-            <h3 className="mb-2 text-lg font-semibold">Current selection:</h3>
-            <p className="text-xl font-medium">
-              {getCurrentDrink() || "No drink selected"}
-            </p>
-          </div>
 
           <button
             type="button"
@@ -175,36 +151,60 @@ export function OrderForm() {
   );
 }
 
-function OrderItem({
-  order,
-  onAdd,
-  onRemove,
+function OrderSummary({
+  orders,
+  onUpdateQuantity,
+  onReset,
 }: {
-  order: { drink: string; quantity: number };
-  onAdd: () => void;
-  onRemove: () => void;
+  orders: { drink: string; quantity: number }[];
+  onUpdateQuantity: (drink: string, change: number) => void;
+  onReset: () => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-x-4 border-b border-gray-200 py-2">
-      <span className="text-lg">
-        {order.drink} <span className="font-medium">(x{order.quantity})</span>
-      </span>
-      <div className="flex gap-x-2">
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold">Order Summary:</h3>
+      {orders.length > 0 ? (
+        <div className="space-y-2">
+          {orders.map((order) => (
+            <div
+              key={order.drink}
+              className="flex items-center justify-between gap-x-4 border-b border-gray-200 py-2"
+            >
+              <span className="text-lg">
+                {order.drink}{" "}
+                <span className="font-medium">(x{order.quantity})</span>
+              </span>
+              <div className="flex gap-x-2">
+                <button
+                  type="button"
+                  onClick={() => onUpdateQuantity(order.drink, 1)}
+                  className="rounded bg-green-500 px-3 py-1 text-white transition-colors hover:bg-green-600"
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onUpdateQuantity(order.drink, -1)}
+                  className="rounded bg-red-500 px-3 py-1 text-white transition-colors hover:bg-red-600"
+                >
+                  -
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="italic text-gray-500">No orders yet</p>
+      )}
+      {orders.length > 0 && (
         <button
           type="button"
-          onClick={onAdd}
-          className="rounded bg-green-500 px-3 py-1 text-white transition-colors hover:bg-green-600"
+          onClick={onReset}
+          className="mt-4 w-full rounded bg-red-500 px-4 py-2 text-white transition-colors hover:bg-red-600"
         >
-          +
+          Clear All Orders
         </button>
-        <button
-          type="button"
-          onClick={onRemove}
-          className="rounded bg-red-500 px-3 py-1 text-white transition-colors hover:bg-red-600"
-        >
-          -
-        </button>
-      </div>
+      )}
     </div>
   );
 }
